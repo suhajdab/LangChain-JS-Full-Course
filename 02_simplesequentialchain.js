@@ -5,43 +5,32 @@ import { SimpleSequentialChain, LLMChain } from "langchain/chains";
 import { OpenAI } from "langchain/llms/openai";
 import { PromptTemplate } from "langchain/prompts";
 
-const llm = new OpenAI({ temperature: 0 });
-
-const responseTemplate1 = `
-You are a helpful bot that creates a 'thank you' response text.
-If customers are unsatisfied, offer them a real world assistant to talk to.
-You will get a sentiment and subject as input and evaluate.
-
-text: {input}
-`;
-
-const responseTemplate2 = `
-You are an assistant bot. Your job is to make the customer feel heard and understood.
-Reflect on the input you receive.
-
-text: {input}
-`;
-
-const reviewPromptTemplate1 = new PromptTemplate({
-  template: responseTemplate1,
-  inputVariables: ["input"],
+const llm = new OpenAI({ temperature: 0.5 });
+const template = `You are a playwright. Given the title of play, it is your job to write a synopsis for that title.
+ 
+  Title: <<<{title}>>>
+  Playwright: This is a synopsis for the above play:`;
+const promptTemplate = new PromptTemplate({
+  template,
+  inputVariables: ["title"],
 });
+const synopsisChain = new LLMChain({ llm, prompt: promptTemplate });
 
-const reviewPromptTemplate2 = new PromptTemplate({
-  template: responseTemplate2,
-  inputVariables: ["input"],
+const reviewTemplate = `You are a play critic from the New York Times. Given the synopsis of play, it is your job to write a review for that play.
+ 
+  Play Synopsis:
+  <<<{synopsis}>>>
+  Review from a New York Times play critic of the above play:`;
+const reviewPromptTemplate = new PromptTemplate({
+  template: reviewTemplate,
+  inputVariables: ["synopsis"],
 });
-
-const reviewChain1 = new LLMChain({ llm, prompt: reviewPromptTemplate1 });
-const reviewChain2 = new LLMChain({ llm, prompt: reviewPromptTemplate2 });
+const reviewChain = new LLMChain({ llm, prompt: reviewPromptTemplate });
 
 const overallChain = new SimpleSequentialChain({
-  chains: [reviewChain1, reviewChain2],
+  chains: [synopsisChain, reviewChain],
   verbose: true,
 });
+const review = await overallChain.run("Tragedy at sunset on the Moon");
 
-const result = await overallChain.run({
-  input: "I ordered Pizza Salami and it was awful!",
-});
-
-console.log(result);
+console.log(review);
