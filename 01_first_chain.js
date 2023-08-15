@@ -5,9 +5,9 @@ import { OpenAI } from "langchain/llms/openai";
 import { PromptTemplate } from "langchain/prompts";
 import { LLMChain } from "langchain/chains";
 
-const model = new OpenAI({ temperature: 0 });
+const model = new OpenAI({ temperature: 0.8 });
 const template =
-  "Be very funny when answering questions\n Question: {question}";
+  "Be very funny when answering questions\n Question: <<<{question}>>>";
 const prompt = new PromptTemplate({ template, inputVariables: ["question"] });
 
 const chain = new LLMChain({ llm: model, prompt });
